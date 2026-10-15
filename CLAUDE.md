@@ -19,7 +19,7 @@
 
 ## 기술 스택과 명령
 
-Next.js 16 (App Router, **cacheComponents 켜짐**, `proxy.ts`) · React 19 · TypeScript · Tailwind 4 · Supabase (Postgres·Auth·Storage, `@supabase/ssr`) · Vercel (도쿄 hnd1, 매일 08:00 KST Cron)
+Next.js 16 (App Router, **cacheComponents 켜짐**, `proxy.ts`) · React 19 · TypeScript · Tailwind 4 · Supabase (Postgres·Auth·Storage, `@supabase/ssr`) · Vercel (서울 icn1, 매일 08:00 KST Cron)
 
 ```bash
 npm run dev            # 로컬 개발 (localhost:3000, 운영 Supabase DB에 연결됨 — 주의)
