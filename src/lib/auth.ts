@@ -9,6 +9,7 @@ export type CurrentUser = {
   email: string;
   name: string;
   role: Role;
+  mustChangePassword: boolean;
 };
 
 // 요청당 한 번만 조회한다(Data Access Layer). 세션을 읽으므로 반드시 <Suspense> 안에서 호출한다.
@@ -20,7 +21,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, name, role, is_active")
+    .select("id, email, name, role, is_active, must_change_password")
     .eq("id", userId)
     .single();
 
@@ -34,6 +35,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
     email: profile.email,
     name: profile.name,
     role: profile.role,
+    mustChangePassword: profile.must_change_password,
   };
 });
 

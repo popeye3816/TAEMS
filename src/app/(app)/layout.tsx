@@ -20,7 +20,12 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <UserNav />
         </Suspense>
       </aside>
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8">{children}</main>
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8">
+        <Suspense fallback={null}>
+          <PasswordNotice />
+        </Suspense>
+        {children}
+      </main>
     </div>
   );
 }
@@ -80,5 +85,15 @@ function NavSkeleton() {
         <div key={i} className="h-8 animate-pulse rounded-md bg-slate-100" />
       ))}
     </div>
+  );
+}
+
+async function PasswordNotice() {
+  const user = await getCurrentUser();
+  if (!user.mustChangePassword) return null;
+  return (
+    <Link href="/account" className="mb-5 block rounded-md bg-amber-100 px-4 py-2.5 text-sm text-amber-900 hover:bg-amber-200">
+      임시 비밀번호로 로그인했습니다. <strong>내 계정</strong>에서 비밀번호를 바꿔 주세요. →
+    </Link>
   );
 }

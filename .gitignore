@@ -52,3 +52,6 @@ next-env.d.ts
 # 엑셀 가져오기 산출물(고객 개인정보 포함)
 /.import/
 __pycache__/
+
+# 운영 백업 (고객 정보 포함)
+/backups/

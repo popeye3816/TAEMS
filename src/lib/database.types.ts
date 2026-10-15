@@ -1087,6 +1087,7 @@ export type Database = {
           email: string
           id: string
           is_active: boolean
+          must_change_password: boolean
           name: string
           notify_email: boolean
           notify_kakaowork: boolean
@@ -1100,6 +1101,7 @@ export type Database = {
           email: string
           id: string
           is_active?: boolean
+          must_change_password?: boolean
           name: string
           notify_email?: boolean
           notify_kakaowork?: boolean
@@ -1113,6 +1115,7 @@ export type Database = {
           email?: string
           id?: string
           is_active?: boolean
+          must_change_password?: boolean
           name?: string
           notify_email?: boolean
           notify_kakaowork?: boolean

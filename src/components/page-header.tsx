@@ -20,18 +20,6 @@ export function PageHeader({
   );
 }
 
-export function ComingSoon({ milestone, items }: { milestone: string; items: string[] }) {
-  return (
-    <div className="card p-6">
-      <p className="text-sm font-medium text-slate-700">{milestone}에서 구현 예정</p>
-      <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-500">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 export function ContentSkeleton() {
   return <div className="card h-40 animate-pulse bg-slate-100" aria-hidden />;

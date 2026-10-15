@@ -7,6 +7,7 @@ import { ContentSkeleton, PageHeader } from "@/components/page-header";
 import { CreateUserForm } from "./create-user-form";
 import { updateUser } from "./actions";
 import { ChannelSection, StaffSection } from "./staff-section";
+import { BulkCreateForm, ResetPasswordButton } from "./bulk-forms";
 
 export default function UsersPage() {
   return (
@@ -24,13 +25,16 @@ async function UsersContent() {
   const supabase = await createClient();
   const { data: users, error } = await supabase
     .from("profiles")
-    .select("id, email, name, role, is_active, created_at")
+    .select("id, email, name, role, is_active, created_at, must_change_password")
     .order("role")
     .order("name");
 
   return (
     <div className="space-y-6">
-      <CreateUserForm />
+      <div className="grid gap-6 xl:grid-cols-2">
+        <CreateUserForm />
+        <BulkCreateForm />
+      </div>
 
       <div className="card overflow-x-auto">
         {error && <p className="p-4 text-sm text-red-700">목록을 불러오지 못했습니다: {error.message}</p>}
@@ -51,7 +55,11 @@ async function UsersContent() {
                     {u.name}
                     {isMe && <span className="ml-1.5 text-xs text-blue-700">(나)</span>}
                   </td>
-                  <td className="px-4 py-3">{u.email}</td>
+                  <td className="px-4 py-3">
+                    {u.email}
+                    {u.must_change_password && <p className="text-xs text-amber-700">임시 비밀번호 사용 중</p>}
+                    {!isMe && <ResetPasswordButton id={u.id} name={u.name} />}
+                  </td>
                   <td className="px-4 py-3">
                     <form action={updateUser} className="flex flex-wrap items-center gap-3">
                       <input type="hidden" name="id" value={u.id} />

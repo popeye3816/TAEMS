@@ -15,7 +15,8 @@
     "import:load": "node --env-file=.env.local scripts/import/load.mjs",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
     "import:plans": "node --env-file=.env.local scripts/import/plans.ts",
-    "import:kb": "python scripts/import/kb.py && node --env-file=.env.local scripts/import/kb-load.mjs"
+    "import:kb": "python scripts/import/kb.py && node --env-file=.env.local scripts/import/kb-load.mjs",
+    "backup": "node --env-file=.env.local scripts/backup.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
