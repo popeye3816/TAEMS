@@ -22,12 +22,12 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    // 400(잘못된 자격증명)이 아니면 인증 서버 연결 문제로 본다.
-    const message =
-      error.status === 400
-        ? "이메일 또는 비밀번호가 올바르지 않습니다."
-        : "인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도하세요.";
-    return { error: message, email };
+    if (error.status === 400) {
+      return { error: "이메일 또는 비밀번호가 올바르지 않습니다.", email };
+    }
+    // 자격증명 오류가 아니면 원인 파악을 위해 서버 로그(Vercel Logs)에 남긴다.
+    console.error("[login] Supabase 인증 오류", { status: error.status, code: error.code, message: error.message });
+    return { error: `로그인할 수 없습니다. 관리자에게 문의하세요. (오류 코드: ${error.code ?? error.status ?? "unknown"})`, email };
   }
 
   redirect(safeNext(formData.get("next")));
