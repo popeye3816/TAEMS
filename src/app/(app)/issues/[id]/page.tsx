@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/auth";
 import { pathRoles } from "@/lib/roles";
 import { listStaff } from "@/lib/customers";
 import { getIssue, listCustomerIssues, listCustomerOptions } from "@/lib/issues";
+import { suggestKb } from "@/lib/kb";
 import { formatDateTime, requestTime } from "@/lib/format";
 import { isImageFile } from "@/lib/inspection-fields";
 import { ContentSkeleton } from "@/components/page-header";
@@ -41,10 +42,11 @@ async function IssueView({ params }: Pick<Props, "params">) {
   const issue = await getIssue(id);
   if (!issue) notFound();
 
-  const [engineers, related, customers] = await Promise.all([
+  const [engineers, related, customers, similar] = await Promise.all([
     listStaff("engineer"),
     listCustomerIssues(issue.customer_id, issue.id, 10),
     listCustomerOptions(),
+    suggestKb(`${issue.title} ${(issue.description ?? "").slice(0, 200)}`, 5, issue.id),
   ]);
   const me = engineers.find((e) => e.profile_id === user.id);
   const isAdmin = user.role === "admin";
@@ -116,7 +118,13 @@ async function IssueView({ params }: Pick<Props, "params">) {
                   <dd className="mt-1 whitespace-pre-wrap">{issue.action}</dd>
                 </div>
               </dl>
-              {issue.add_to_kb && <p className="mt-3 text-xs text-blue-700">지식베이스 등록 요청됨 (M5에서 KB 초안으로 만들어집니다)</p>}
+              {issue.kb ? (
+                <p className="mt-3 text-xs">
+                  <Link href={`/kb/${issue.kb.id}`} className="text-blue-700 hover:underline">
+                    지식베이스 #{issue.kb.number} {issue.kb.status === "draft" ? "(초안 — 다듬어 게시해 주세요)" : "(게시됨)"}
+                  </Link>
+                </p>
+              ) : null}
             </section>
           ) : (
             canChange &&
@@ -248,6 +256,25 @@ async function IssueView({ params }: Pick<Props, "params">) {
             )}
             {!resolved && !canChange && issue.assignee && (
               <p className="text-xs text-slate-500">상태 변경은 담당자({issue.assignee.name})와 관리자가 합니다.</p>
+            )}
+          </section>
+
+          <section className="card p-4">
+            <h2 className="text-sm font-semibold text-slate-900">비슷한 지식</h2>
+            {similar.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-500">
+                비슷한 문서가 없습니다. 완료할 때 <strong>지식베이스에 등록</strong>하면 다음에 찾아볼 수 있습니다.
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-2 text-sm">
+                {similar.map((s) => (
+                  <li key={s.id}>
+                    <Link href={`/kb/${s.id}`} className="font-medium text-blue-800 hover:underline">#{s.number} {s.title}</Link>
+                    {s.status === "draft" && <span className="ml-1 text-xs text-amber-700">(초안)</span>}
+                    {s.cause && <p className="line-clamp-2 text-xs text-slate-500">원인: {s.cause}</p>}
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 

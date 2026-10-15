@@ -24,3 +24,25 @@ body {
     @apply rounded-xl border border-slate-200 bg-white shadow-xs;
   }
 }
+
+/* 지식베이스 마크다운 본문 */
+@layer components {
+  .markdown {
+    @apply space-y-3 text-sm leading-relaxed text-slate-900;
+  }
+  .markdown h1 { @apply mt-6 text-xl font-bold; }
+  .markdown h2 { @apply mt-6 border-b border-slate-200 pb-1 text-lg font-bold; }
+  .markdown h3 { @apply mt-4 text-base font-semibold; }
+  .markdown h4 { @apply mt-3 font-semibold; }
+  .markdown ul { @apply list-disc space-y-1 pl-5; }
+  .markdown ol { @apply list-decimal space-y-1 pl-5; }
+  .markdown a { @apply text-blue-800 underline; }
+  .markdown blockquote { @apply border-l-4 border-slate-300 bg-slate-50 py-1 pl-3 text-slate-700; }
+  .markdown code { @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em]; }
+  .markdown pre { @apply overflow-x-auto rounded-lg bg-slate-900 p-3 text-slate-100; }
+  .markdown pre code { @apply bg-transparent p-0 text-slate-100; }
+  .markdown table { @apply block w-full overflow-x-auto border-collapse text-sm; }
+  .markdown th { @apply border border-slate-200 bg-slate-50 px-2 py-1 text-left font-medium; }
+  .markdown td { @apply border border-slate-200 px-2 py-1 align-top; }
+  .markdown hr { @apply my-4 border-slate-200; }
+}

@@ -44,7 +44,8 @@ export async function getIssue(id: string) {
        assignee:staff(id, name, profile_id),
        reporter:profiles(name),
        activities:issue_activities(id, kind, body, created_at, author:profiles(id, name)),
-       files:issue_files(id, file_name, file_size, content_type, created_at, uploaded_by, uploader:profiles(name))`,
+       files:issue_files(id, file_name, file_size, content_type, created_at, uploaded_by, uploader:profiles(name)),
+       kb:kb_articles(id, number, status)`,
     )
     .eq("id", id)
     .maybeSingle();

@@ -14,7 +14,8 @@
     "import:extract": "python scripts/import/extract.py",
     "import:load": "node --env-file=.env.local scripts/import/load.mjs",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
-    "import:plans": "node --env-file=.env.local scripts/import/plans.ts"
+    "import:plans": "node --env-file=.env.local scripts/import/plans.ts",
+    "import:kb": "python scripts/import/kb.py && node --env-file=.env.local scripts/import/kb-load.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -24,6 +25,8 @@
     "next": "16.4.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "server-only": "^0.0.1"
   },
   "devDependencies": {

@@ -184,8 +184,54 @@ export async function resolveIssue(_prev: FormState, fd: FormData): Promise<Form
   const err = fail(error, "완료 처리");
   if (err) return err;
   await log(id, user, "status", `상태: ${ISSUE_STATUS_LABEL.resolved}`);
+  const kb = fd.get("add_to_kb") === "on" ? await saveKbDraft(id, user) : null;
   refresh();
-  return { ok: "완료했습니다." };
+  return { ok: kb ? `완료했습니다. 지식베이스 초안 #${kb}을(를) 만들었습니다. 지식베이스에서 다듬어 게시해 주세요.` : "완료했습니다." };
+}
+
+// 완료한 이슈로 지식베이스 초안을 만든다. 이미 있으면 초안일 때만 원인·조치를 갱신한다.
+async function saveKbDraft(issueId: string, user: CurrentUser): Promise<number | null> {
+  const supabase = await createClient();
+  const { data: i } = await supabase
+    .from("issues")
+    .select("number, title, description, cause, action, customer_id, system:customer_systems(product, version)")
+    .eq("id", issueId)
+    .single();
+  if (!i) return null;
+  const product = i.system?.product ?? null;
+  const fields = {
+    title: i.title,
+    symptom: i.description,
+    cause: i.cause,
+    solution: i.action,
+    updated_by: user.id,
+  };
+  const { data: existing } = await supabase
+    .from("kb_articles")
+    .select("id, number, status")
+    .eq("source_issue_id", issueId)
+    .maybeSingle();
+  if (existing) {
+    if (existing.status === "draft") await supabase.from("kb_articles").update(fields).eq("id", existing.id);
+    return existing.number;
+  }
+  const { data } = await supabase
+    .from("kb_articles")
+    .insert({
+      ...fields,
+      kind: "case",
+      status: "draft",
+      category: product === "Jennifer" ? "APM" : product && ["WAS", "IHS", "Liberty"].includes(product) ? "WAS" : "기타",
+      product: [product, i.system?.version].filter(Boolean).join(" ") || null,
+      customer_id: i.customer_id,
+      source_issue_id: issueId,
+      source_note: `이슈 #${i.number}`,
+      author_id: user.id,
+    })
+    .select("number")
+    .single();
+  if (data) await log(issueId, user, "edit", `지식베이스 초안 #${data.number}을(를) 만들었습니다.`);
+  return data?.number ?? null;
 }
 
 export async function reopenIssue(fd: FormData) {

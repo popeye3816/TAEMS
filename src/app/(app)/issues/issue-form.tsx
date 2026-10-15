@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ActionForm, Field } from "@/components/action-form";
 import { CHANNELS, SEVERITIES } from "@/lib/issue-fields";
 import { createIssue, updateIssue } from "./actions";
+import { findSimilarKb } from "../kb/actions";
+import type { KbSuggestion } from "@/lib/kb";
 
 type CustomerOption = { id: string; name: string; systems: { id: string; label: string }[] };
 
@@ -35,6 +38,8 @@ export function IssueForm({
 }) {
   const [customerId, setCustomerId] = useState(issue?.customer_id ?? defaults?.customerId ?? "");
   const systems = customers.find((c) => c.id === customerId)?.systems ?? [];
+  const [query, setQuery] = useState({ title: "", description: "" });
+  const suggestions = useSimilarKb(issue ? "" : `${query.title} ${query.description.slice(0, 200)}`);
 
   return (
     <ActionForm action={issue ? updateIssue : createIssue} submitLabel={issue ? "저장" : "등록"}>
@@ -71,11 +76,40 @@ export function IssueForm({
           </select>
         </Field>
         <Field label="제목 *" className="sm:col-span-2">
-          <input name="title" required defaultValue={issue?.title} placeholder="예: WAS 기동 후 OOM 발생" className="input" />
+          <input
+            name="title"
+            required
+            defaultValue={issue?.title}
+            placeholder="예: WAS 기동 후 OOM 발생"
+            onChange={(e) => setQuery((q) => ({ ...q, title: e.target.value }))}
+            className="input"
+          />
         </Field>
         <Field label="내용 (증상, 발생 시각, 오류 메시지, 환경)" className="sm:col-span-2">
-          <textarea name="description" rows={6} defaultValue={issue?.description ?? ""} className="input" />
+          <textarea
+            name="description"
+            rows={6}
+            defaultValue={issue?.description ?? ""}
+            onChange={(e) => setQuery((q) => ({ ...q, description: e.target.value }))}
+            className="input"
+          />
         </Field>
+        {suggestions.length > 0 && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 sm:col-span-2">
+            <p className="text-xs font-semibold text-blue-900">비슷한 지식베이스 문서 — 등록 전에 확인해 보세요</p>
+            <ul className="mt-1.5 space-y-1 text-sm">
+              {suggestions.map((s) => (
+                <li key={s.id}>
+                  <Link href={`/kb/${s.id}`} target="_blank" className="text-blue-800 hover:underline">
+                    #{s.number} {s.title}
+                  </Link>
+                  {s.status === "draft" && <span className="ml-1 text-xs text-amber-700">(초안)</span>}
+                  {s.cause && <span className="ml-2 line-clamp-1 text-xs text-slate-500">원인: {s.cause}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <Field label="심각도">
           <select name="severity" defaultValue={issue?.severity ?? "보통"} className="input">
             {SEVERITIES.map((s) => (
@@ -116,4 +150,22 @@ export function IssueForm({
       </div>
     </ActionForm>
   );
+}
+
+// 입력이 멈추고 0.6초 뒤에 비슷한 문서를 찾는다
+function useSimilarKb(text: string) {
+  const [items, setItems] = useState<KbSuggestion[]>([]);
+  const seq = useRef(0);
+  const q = text.trim();
+  useEffect(() => {
+    const id = ++seq.current;
+    const timer = setTimeout(() => {
+      if (q.length < 2) return setItems([]);
+      findSimilarKb(q)
+        .then((r) => id === seq.current && setItems(r))
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [q]);
+  return q.length < 2 ? [] : items;
 }

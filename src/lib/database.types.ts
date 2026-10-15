@@ -864,6 +864,143 @@ export type Database = {
           },
         ]
       }
+      kb_articles: {
+        Row: {
+          author_id: string | null
+          category: string
+          cause: string | null
+          content: string | null
+          created_at: string
+          customer_id: string | null
+          environment: string | null
+          id: string
+          kind: string
+          number: number
+          product: string | null
+          search_text: string
+          solution: string | null
+          source_issue_id: string | null
+          source_note: string | null
+          status: string
+          symptom: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          view_count: number
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string
+          cause?: string | null
+          content?: string | null
+          created_at?: string
+          customer_id?: string | null
+          environment?: string | null
+          id?: string
+          kind?: string
+          number?: never
+          product?: string | null
+          search_text?: string
+          solution?: string | null
+          source_issue_id?: string | null
+          source_note?: string | null
+          status?: string
+          symptom?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          view_count?: number
+        }
+        Update: {
+          author_id?: string | null
+          category?: string
+          cause?: string | null
+          content?: string | null
+          created_at?: string
+          customer_id?: string | null
+          environment?: string | null
+          id?: string
+          kind?: string
+          number?: never
+          product?: string | null
+          search_text?: string
+          solution?: string | null
+          source_issue_id?: string | null
+          source_note?: string | null
+          status?: string
+          symptom?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_source_issue_id_fkey"
+            columns: ["source_issue_id"]
+            isOneToOne: true
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_helpful: {
+        Row: {
+          article_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_helpful_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "kb_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_helpful_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1056,6 +1193,15 @@ export type Database = {
         Returns: boolean
       }
       is_staff_user: { Args: never; Returns: boolean }
+      kb_record_view: { Args: { p_id: string }; Returns: undefined }
+      search_kb: {
+        Args: { lim?: number; published_only?: boolean; q: string }
+        Returns: {
+          hits: number
+          id: string
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       staff_kind: "engineer" | "sales"
