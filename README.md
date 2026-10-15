@@ -53,6 +53,28 @@ http://localhost:3000 에서 로그인한다. 이후 사용자는 **사용자 �
 3. Environment Variables에 `.env.local`과 같은 3개 값 입력 → Deploy
 4. 배포 주소를 Supabase Site URL에 등록 (1-4단계)
 
+## 기존 엑셀 가져오기
+
+원본: `유지보수 고객사 현황_*.xlsx`(MA·계약 시트), `고객사인수인계문서_*.xlsx`. 결과물은 `.import/`에 생기며 git에 올라가지 않는다(고객 개인정보 포함).
+
+```bash
+npm run import:extract
+```
+
+`.import/name-map.csv`를 Excel로 열어 `고객사(확정)` 열을 확인·수정한다(`-`는 가져오지 않음). 수정했으면 위 명령을 다시 실행한다. `.import/검토요약.md`에서 고객사별 건수를 확인한다.
+
+```bash
+npm run import:load
+```
+
+미리보기로 건수를 확인한 뒤 실제로 넣는다. 다시 실행해도 중복되지 않는다(고객사는 이름, 계약은 계약번호 기준. 화면에서 입력한 항목은 유지).
+
+```bash
+npm run import:load -- --apply
+```
+
+`ENCRYPTION_KEY`(접속정보 암호화 키)를 잃어버리면 암호화된 IP·계정을 복구할 수 없다. 안전한 곳에 따로 보관한다.
+
 ## 역할
 
 | 역할 | 메뉴 |

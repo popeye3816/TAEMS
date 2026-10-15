@@ -48,3 +48,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# 엑셀 가져오기 산출물(고객 개인정보 포함)
+/.import/
+__pycache__/
