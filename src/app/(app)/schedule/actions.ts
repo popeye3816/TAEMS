@@ -7,7 +7,7 @@ import { pathRoles } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { ALL_MONTHS, CYCLES, METHODS, type Cycle } from "@/lib/inspection-cycle";
-import { INSPECTION_STATUSES, RESULT_OPTIONS, type InspectionStatus } from "@/lib/inspection-fields";
+import { INSPECTION_STATUSES, type InspectionStatus } from "@/lib/inspection-fields";
 import type { TablesUpdate } from "@/lib/database.types";
 
 export type FormState = { ok?: string; error?: string } | undefined;
@@ -175,64 +175,6 @@ export async function updateSchedule(fd: FormData) {
   refresh();
 }
 
-// ── 점검 기록 (요약·항목별 결과) ───────────────────────────────────
-export async function saveInspectionRecord(_prev: FormState, fd: FormData): Promise<FormState> {
-  const user = await requireStaff();
-  const id = text(fd, "id");
-  if (!id) return { error: "점검을 찾을 수 없습니다." };
-  const supabase = await createClient();
-
-  // 결과 입력 칸 이름: r|<항목id>|<대상키>|<대상이름>, 상세: d|<항목id>|<대상키>
-  const allowed = new Set(Object.values(RESULT_OPTIONS).flat());
-  const results = new Map<string, { item_id: string; target_key: string; target_label: string | null; result: string | null; detail: string | null }>();
-  for (const [name, raw] of fd.entries()) {
-    const [kind, itemId, targetKey, label] = name.split("|");
-    if ((kind !== "r" && kind !== "d") || !itemId || !targetKey) continue;
-    const key = `${itemId}|${targetKey}`;
-    const cur = results.get(key) ?? { item_id: itemId, target_key: targetKey, target_label: null, result: null, detail: null };
-    const value = String(raw).trim() || null;
-    if (kind === "r") {
-      cur.result = value && allowed.has(value) ? value : null;
-      cur.target_label = label ?? null;
-    } else {
-      cur.detail = value;
-    }
-    results.set(key, cur);
-  }
-  const filled = [...results.values()].filter((r) => r.result || r.detail);
-  if (filled.length) {
-    const { error } = await supabase
-      .from("inspection_results")
-      .upsert(filled.map((r) => ({ ...r, inspection_id: id, updated_at: new Date().toISOString() })), {
-        onConflict: "inspection_id,item_id,target_key",
-      });
-    const err = fail(error, "점검 결과 저장");
-    if (err) return err;
-  }
-  const empty = [...results.values()].filter((r) => !r.result && !r.detail);
-  for (const r of empty) {
-    await supabase.from("inspection_results").delete().match({ inspection_id: id, item_id: r.item_id, target_key: r.target_key });
-  }
-
-  const complete = fd.get("complete") === "on";
-  const { data: cur } = await supabase.from("inspections").select("status, completed_at").eq("id", id).single();
-  const patch: TablesUpdate<"inspections"> = {
-    summary: text(fd, "summary"),
-    findings: text(fd, "findings"),
-    follow_up: text(fd, "follow_up"),
-    updated_by: user.id,
-  };
-  if (complete && cur && ["planned", "scheduled"].includes(cur.status)) {
-    patch.status = "done";
-    patch.completed_at = new Date().toISOString();
-  }
-  const { error } = await supabase.from("inspections").update(patch).eq("id", id);
-  const err = fail(error, "점검 기록 저장");
-  if (err) return err;
-  refresh();
-  return { ok: patch.status === "done" ? "저장하고 점검완료로 바꿨습니다. 결과서를 올려 주세요." : "저장했습니다." };
-}
-
 // ── 파일 업로드 (브라우저 → Supabase Storage 직접) ─────────────────
 const BUCKETS = { report: "inspection-reports", template: "report-templates" } as const;
 
@@ -260,6 +202,7 @@ export async function confirmReportUpload(input: {
   path: string;
   fileName: string;
   fileSize: number;
+  contentType: string | null;
   product: string | null;
   signed: boolean;
 }): Promise<FormState> {
@@ -280,6 +223,7 @@ export async function confirmReportUpload(input: {
     storage_path: input.path,
     file_name: input.fileName,
     file_size: input.fileSize,
+    content_type: input.contentType,
     version: insp.reports.length + 1,
     customer_signed: input.signed,
     uploaded_by: user.id,

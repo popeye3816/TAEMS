@@ -19,12 +19,11 @@ export const STATUS_STYLE: Record<InspectionStatus, string> = {
   canceled: "bg-slate-100 text-slate-400 line-through",
 };
 
-export const RESULT_OPTIONS: Record<string, string[]> = {
-  normal_abnormal: ["정상", "비정상"],
-  oxc: ["O", "X", "C"],
-};
-export const RESULT_HINT: Record<string, string> = { O: "정상", X: "비정상", C: "확인 필요" };
-export const isBadResult = (r: string | null | undefined) => r === "비정상" || r === "X" || r === "C";
+// 결과서로 올릴 수 있는 파일: 문서(PDF·Word·한글·Excel·PowerPoint), 사진, 압축
+export const REPORT_ACCEPT =
+  ".pdf,.doc,.docx,.hwp,.hwpx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.heic,.zip";
+export const isImageFile = (name: string, contentType?: string | null) =>
+  (contentType ?? "").startsWith("image/") || /\.(jpe?g|png|gif|webp|heic)$/i.test(name);
 
 export function ym(year: number, month: number) {
   return `${year}-${String(month).padStart(2, "0")}`;

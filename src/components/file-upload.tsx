@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { confirmReportUpload, confirmTemplateUpload, prepareUpload } from "@/app/(app)/schedule/actions";
+import { REPORT_ACCEPT } from "@/lib/inspection-fields";
 import { Field } from "./action-form";
 
 const MAX_MB = 50;
@@ -46,55 +47,56 @@ function Message({ msg }: { msg: { ok?: string; error?: string } | null }) {
   );
 }
 
-export function ReportUpload({ inspectionId, products }: { inspectionId: string; products: string[] }) {
+export function ReportUpload({ inspectionId }: { inspectionId: string }) {
   const { pending, msg, run } = useUpload();
+  const [progress, setProgress] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
 
   return (
     <form
       ref={form}
-      className="space-y-3"
+      className="space-y-3 rounded-lg border border-blue-100 bg-blue-50/40 p-4"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const file = fd.get("file");
-        if (!(file instanceof File) || file.size === 0) return;
+        const files = fd.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+        if (files.length === 0) return;
+        const signed = fd.get("signed") === "on";
         run(async () => {
-          const path = await uploadFile("report", inspectionId, file);
-          const r = await confirmReportUpload({
-            inspectionId,
-            path,
-            fileName: file.name,
-            fileSize: file.size,
-            product: (fd.get("product") as string) || null,
-            signed: fd.get("signed") === "on",
-          });
-          if (r?.ok) form.current?.reset();
-          return r;
-        });
+          // 한 파일씩 순서대로 올린다. 실패하면 그 앞까지 올린 파일은 남는다.
+          for (const [i, file] of files.entries()) {
+            setProgress(`${i + 1}/${files.length} ${file.name}`);
+            const path = await uploadFile("report", inspectionId, file);
+            const r = await confirmReportUpload({
+              inspectionId,
+              path,
+              fileName: file.name,
+              fileSize: file.size,
+              contentType: file.type || null,
+              product: null,
+              signed,
+            });
+            if (r?.error) return { error: `${file.name}: ${r.error}` };
+          }
+          setProgress(null);
+          form.current?.reset();
+          return { ok: `${files.length}개 파일을 올렸습니다. 영업 담당자가 점검결과서 화면에서 내려받을 수 있습니다.` };
+        }).finally(() => setProgress(null));
       }}
     >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="결과서 파일 (PDF 권장, 50MB 이하)" className="sm:col-span-2">
-          <input name="file" type="file" required accept=".pdf,.doc,.docx,.hwp,.hwpx,.xlsx,.zip" className="input" />
-        </Field>
-        <Field label="제품">
-          <select name="product" defaultValue={products.length === 1 ? products[0] : ""} className="input">
-            <option value="">전체</option>
-            {products.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </Field>
-      </div>
+      <Field label={`결과서·사진 파일 (여러 개 선택 가능, 파일당 ${MAX_MB}MB 이하)`}>
+        <input name="files" type="file" multiple required accept={REPORT_ACCEPT} className="input bg-white" />
+      </Field>
+      <p className="text-xs text-slate-500">PDF, Word, 한글, Excel, PowerPoint, 사진(JPG·PNG 등), ZIP</p>
       <label className="flex items-center gap-1.5 text-sm">
         <input type="checkbox" name="signed" /> 고객 확인 서명본
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className="btn-primary">
           <Upload className="size-4" aria-hidden />
-          {pending ? "올리는 중…" : "결과서 올리기"}
+          {pending ? "올리는 중…" : "올리기"}
         </button>
+        {progress && <span className="text-sm text-slate-600">{progress}</span>}
         <Message msg={msg} />
       </div>
     </form>

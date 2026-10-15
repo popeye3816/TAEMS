@@ -48,8 +48,7 @@ export async function getInspection(id: string) {
          systems:customer_systems(id, business_name, hostname, product, version, edition, environment)),
        engineer:staff(id, name),
        plan:inspection_plans(cycle, months, method, visit_months, preferred_timing),
-       results:inspection_results(item_id, target_key, result, detail),
-       reports:inspection_reports(id, file_name, file_size, product, version, customer_signed, created_at,
+       reports:inspection_reports(id, file_name, file_size, content_type, product, version, customer_signed, created_at,
          uploader:profiles(name))`,
     )
     .eq("id", id)
@@ -59,19 +58,6 @@ export async function getInspection(id: string) {
   return { ...data, reports: data.reports.sort((a, b) => b.created_at.localeCompare(a.created_at)) };
 }
 export type InspectionDetail = NonNullable<Awaited<ReturnType<typeof getInspection>>>;
-
-export async function listChecklists(products: string[]) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("checklist_templates")
-    .select("id, product, title, result_scale, items:checklist_items(id, section, name, method, sort_order, is_active)")
-    .in("product", products.length ? products : ["-"]);
-  if (error) throw new Error(`점검 항목 조회 실패: ${error.message}`);
-  return data.map((t) => ({
-    ...t,
-    items: t.items.filter((i) => i.is_active).sort((a, b) => a.sort_order - b.sort_order),
-  }));
-}
 
 export async function listReportTemplates(customerId?: string) {
   const supabase = await createClient();

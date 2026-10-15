@@ -14,68 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      checklist_items: {
-        Row: {
-          id: string
-          is_active: boolean
-          method: string | null
-          name: string
-          section: string | null
-          sort_order: number
-          template_id: string
-        }
-        Insert: {
-          id?: string
-          is_active?: boolean
-          method?: string | null
-          name: string
-          section?: string | null
-          sort_order?: number
-          template_id: string
-        }
-        Update: {
-          id?: string
-          is_active?: boolean
-          method?: string | null
-          name?: string
-          section?: string | null
-          sort_order?: number
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checklist_items_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checklist_templates: {
-        Row: {
-          created_at: string
-          id: string
-          product: string
-          result_scale: string
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          product: string
-          result_scale: string
-          title: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          product?: string
-          result_scale?: string
-          title?: string
-        }
-        Relationships: []
-      }
       contracts: {
         Row: {
           amount: number | null
@@ -574,6 +512,7 @@ export type Database = {
       }
       inspection_reports: {
         Row: {
+          content_type: string | null
           created_at: string
           customer_id: string
           customer_signed: boolean
@@ -587,6 +526,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          content_type?: string | null
           created_at?: string
           customer_id: string
           customer_signed?: boolean
@@ -600,6 +540,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          content_type?: string | null
           created_at?: string
           customer_id?: string
           customer_signed?: boolean
@@ -636,62 +577,12 @@ export type Database = {
           },
         ]
       }
-      inspection_results: {
-        Row: {
-          detail: string | null
-          id: string
-          inspection_id: string
-          item_id: string
-          result: string | null
-          target_key: string
-          target_label: string | null
-          updated_at: string
-        }
-        Insert: {
-          detail?: string | null
-          id?: string
-          inspection_id: string
-          item_id: string
-          result?: string | null
-          target_key: string
-          target_label?: string | null
-          updated_at?: string
-        }
-        Update: {
-          detail?: string | null
-          id?: string
-          inspection_id?: string
-          item_id?: string
-          result?: string | null
-          target_key?: string
-          target_label?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inspection_results_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inspection_results_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       inspections: {
         Row: {
           completed_at: string | null
           created_at: string
           customer_id: string
           engineer_id: string | null
-          findings: string | null
-          follow_up: string | null
           id: string
           method: string | null
           month: number
@@ -710,8 +601,6 @@ export type Database = {
           created_at?: string
           customer_id: string
           engineer_id?: string | null
-          findings?: string | null
-          follow_up?: string | null
           id?: string
           method?: string | null
           month: number
@@ -730,8 +619,6 @@ export type Database = {
           created_at?: string
           customer_id?: string
           engineer_id?: string | null
-          findings?: string | null
-          follow_up?: string | null
           id?: string
           method?: string | null
           month?: number
