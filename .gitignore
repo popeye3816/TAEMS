@@ -45,3 +45,6 @@ next-env.d.ts
 
 # 로컬 전용 비밀 파일
 /.secrets/
+
+.vercel
+.env*
