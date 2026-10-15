@@ -6,11 +6,12 @@ import { pathRoles, ROLE_LABELS, ROLES } from "@/lib/roles";
 import { ContentSkeleton, PageHeader } from "@/components/page-header";
 import { CreateUserForm } from "./create-user-form";
 import { updateUser } from "./actions";
+import { ChannelSection, StaffSection } from "./staff-section";
 
 export default function UsersPage() {
   return (
     <>
-      <PageHeader title="사용자 관리" description="계정을 만들고 역할(관리자·엔지니어·영업)을 지정합니다." />
+      <PageHeader title="사용자 관리" description="계정·역할, 직원 명단(알림 받을 이메일), 알림 채널을 관리합니다." />
       <Suspense fallback={<ContentSkeleton />}>
         <UsersContent />
       </Suspense>
@@ -84,6 +85,8 @@ async function UsersContent() {
           </tbody>
         </table>
       </div>
+      <StaffSection />
+      <ChannelSection />
     </div>
   );
 }

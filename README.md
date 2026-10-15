@@ -87,6 +87,18 @@ npm run import:kb -- --apply
 
 `ENCRYPTION_KEY`(접속정보 암호화 키)를 잃어버리면 암호화된 IP·계정을 복구할 수 없다. 안전한 곳에 따로 보관한다.
 
+## 알림 채널 켜기
+
+시스템 안의 알림은 설정 없이 동작한다. 외부 채널은 아래 값을 Vercel 환경변수(Production)에 넣고 다시 배포하면 켜진다. 사용자 관리 › 알림 채널에서 "나에게 시험 알림 보내기"로 확인한다.
+
+| 채널 | 용도 | 환경변수 | 준비 |
+|---|---|---|---|
+| 메일 | 개인 알림 | `RESEND_API_KEY`, `MAIL_FROM` | resend.com 가입 → 도메인 `unipoint.co.kr` DNS 인증 → API 키 발급. `MAIL_FROM` 예: `TAEMS <noreply@unipoint.co.kr>` |
+| 카카오워크 | 개인 메시지 (회사 이메일로 찾음) | `KAKAOWORK_BOT_KEY` | 카카오워크 관리자 › 봇 › 봇 만들기 → 앱 키 |
+| Slack | 팀 채널 공지 (긴급 이슈, 결과서 제출, 아침 요약) | `SLACK_WEBHOOK_URL` | Slack 앱 › Incoming Webhooks → 채널 선택 → Webhook URL |
+
+매일 아침 8시(한국 시간) `vercel.json`의 Cron이 `/api/cron/daily`를 호출한다(`CRON_SECRET`으로 인증). 보내는 알림: 점검 D-3, 지연 이슈, 월말 3일 전 미완료·결과서 미제출, 계약 만료 60일 전, 팀 아침 요약.
+
 ## 역할
 
 | 역할 | 메뉴 |
@@ -114,4 +126,4 @@ scripts/create-user.mjs    계정 생성 스크립트
 
 ## 개발 단계
 
-M1 셋업·로그인·역할 ✅ → M2 고객사·엑셀 가져오기 ✅ → M3 점검 일정·결과서 ✅ → M4 이슈 ✅ → M5 지식베이스 ✅ → M6 알림·대시보드 → M7 운영 배포
+M1 셋업·로그인·역할 ✅ → M2 고객사·엑셀 가져오기 ✅ → M3 점검 일정·결과서 ✅ → M4 이슈 ✅ → M5 지식베이스 ✅ → M6 알림·대시보드 ✅ → M7 운영 배포

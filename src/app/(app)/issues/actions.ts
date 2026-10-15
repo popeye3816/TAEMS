@@ -1,6 +1,8 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { after } from "next/server";
+import { issueAssigned, urgentIssueReceived } from "@/lib/events";
 import { redirect } from "next/navigation";
 import { requireRole, type CurrentUser } from "@/lib/auth";
 import { pathRoles } from "@/lib/roles";
@@ -61,9 +63,10 @@ export async function createIssue(_prev: FormState, fd: FormData): Promise<FormS
   if (!customer_id) return { error: "고객사를 선택하세요." };
   if (!title) return { error: "제목을 입력하세요." };
 
+  const me = await myStaffId(user);
   let assignee_id = text(fd, "assignee_id");
-  if (assignee_id === "me") assignee_id = await myStaffId(user);
-  if (assignee_id && user.role !== "admin" && assignee_id !== (await myStaffId(user))) {
+  if (assignee_id === "me") assignee_id = me;
+  if (assignee_id && user.role !== "admin" && assignee_id !== me) {
     return { error: "다른 사람에게 배정은 관리자만 할 수 있습니다. 본인 또는 미배정으로 등록하세요." };
   }
   const receivedAt = text(fd, "received_at");
@@ -90,6 +93,10 @@ export async function createIssue(_prev: FormState, fd: FormData): Promise<FormS
   const err = fail(error, "이슈 등록");
   if (err || !data) return err ?? { error: "이슈 등록 실패" };
   await log(data.id, user, "status", "이슈를 등록했습니다.");
+  after(async () => {
+    await urgentIssueReceived(data.id);
+    if (assignee_id && assignee_id !== me) await issueAssigned(data.id);
+  });
   redirect(`/issues/${data.id}`);
 }
 
@@ -140,6 +147,7 @@ export async function assignIssue(_prev: FormState, fd: FormData): Promise<FormS
   const err = fail(error, "배정");
   if (err) return err;
   await log(id, user, "assign", `담당자: ${staff?.name ?? "?"}`);
+  if (target !== me) after(() => issueAssigned(id));
   refresh();
   return { ok: `${staff?.name}에게 배정했습니다.` };
 }

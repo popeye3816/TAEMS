@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { navForRole, ROLE_LABELS } from "@/lib/roles";
 import { SidebarNav } from "@/components/sidebar-nav";
@@ -27,10 +28,30 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 async function UserNav() {
   const user = await getCurrentUser();
   const items = navForRole(user.role).map(({ href, label, icon }) => ({ href, label, icon }));
+  const supabase = await createClient();
+  const { count: unread } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .is("read_at", null);
 
   return (
     <div className="flex flex-1 flex-col justify-between gap-4 px-3 pb-4">
-      <SidebarNav items={items} />
+      <div className="space-y-1">
+        <SidebarNav items={items} />
+        <Link
+          href="/notifications"
+          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Bell className="size-4" aria-hidden />
+          알림
+          {unread ? (
+            <span className="ml-auto rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-semibold text-white">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          ) : null}
+        </Link>
+      </div>
       <div className="border-t border-slate-200 pt-3">
         <Link href="/account" className="block rounded-md px-3 py-1.5 text-sm hover:bg-slate-100">
           <p className="font-medium text-slate-900">{user.name}</p>

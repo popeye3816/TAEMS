@@ -3,6 +3,8 @@
 import { todayKst } from "@/lib/format";
 import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
+import { after } from "next/server";
+import { reportUploaded } from "@/lib/events";
 import { requireRole } from "@/lib/auth";
 import { pathRoles } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -238,7 +240,7 @@ export async function confirmReportUpload(input: {
       .update({ status: "reported", reported_at: new Date().toISOString(), updated_by: user.id })
       .eq("id", insp.id);
   }
-  // 영업 담당 알림(메일·메신저)은 M6에서 이 지점에 연결한다.
+  after(() => reportUploaded(insp.id));
   refresh();
   return { ok: "결과서를 올렸습니다. 영업 담당자가 점검결과서 화면에서 내려받을 수 있습니다." };
 }

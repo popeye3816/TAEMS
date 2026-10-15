@@ -1001,6 +1001,86 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          channel: string
+          created_at: string
+          dedupe_key: string | null
+          error: string | null
+          id: number
+          recipient: string | null
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          dedupe_key?: string | null
+          error?: string | null
+          id?: never
+          recipient?: string | null
+          status: string
+          title: string
+          type: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          dedupe_key?: string | null
+          error?: string | null
+          id?: never
+          recipient?: string | null
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1008,6 +1088,8 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          notify_email: boolean
+          notify_kakaowork: boolean
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           team: string | null
@@ -1019,6 +1101,8 @@ export type Database = {
           id: string
           is_active?: boolean
           name: string
+          notify_email?: boolean
+          notify_kakaowork?: boolean
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           team?: string | null
@@ -1030,6 +1114,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          notify_email?: boolean
+          notify_kakaowork?: boolean
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           team?: string | null
