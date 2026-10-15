@@ -1,3 +1,5 @@
+import { todayKst } from "./format";
+
 // 점검 상태·결과 표시용 (클라이언트에서도 사용)
 
 export const INSPECTION_STATUSES = ["planned", "scheduled", "done", "reported", "canceled"] as const;
@@ -29,11 +31,13 @@ export function ym(year: number, month: number) {
   return `${year}-${String(month).padStart(2, "0")}`;
 }
 
-export function parseYm(v: string | undefined | null, fallback = new Date()) {
+// 'YYYY-MM' 해석. 없거나 잘못되면 이번 달(한국 기준)
+export function parseYm(v: string | undefined | null) {
+  const [ty, tm] = todayKst().split("-").map(Number);
   const m = v?.match(/^(\d{4})-(\d{1,2})$/);
-  const year = m ? Number(m[1]) : fallback.getFullYear();
-  const month = m ? Number(m[2]) : fallback.getMonth() + 1;
-  return month >= 1 && month <= 12 ? { year, month } : { year: fallback.getFullYear(), month: fallback.getMonth() + 1 };
+  const year = m ? Number(m[1]) : ty;
+  const month = m ? Number(m[2]) : tm;
+  return month >= 1 && month <= 12 ? { year, month } : { year: ty, month: tm };
 }
 
 export function shiftMonth(year: number, month: number, delta: number) {

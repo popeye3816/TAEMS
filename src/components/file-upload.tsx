@@ -3,17 +3,18 @@
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { confirmReportUpload, confirmTemplateUpload, prepareUpload } from "@/app/(app)/schedule/actions";
+import { confirmReportUpload, confirmTemplateUpload, prepareUpload, type UploadKind } from "@/app/(app)/schedule/actions";
+import { confirmIssueFile } from "@/app/(app)/issues/actions";
 import { REPORT_ACCEPT } from "@/lib/inspection-fields";
 import { Field } from "./action-form";
 
 const MAX_MB = 50;
 
-async function uploadFile(kind: "report" | "template", ownerId: string, file: File) {
+export async function uploadFile(kind: UploadKind, ownerId: string, file: File) {
   if (file.size > MAX_MB * 1024 * 1024) throw new Error(`파일은 ${MAX_MB}MB 이하만 올릴 수 있습니다.`);
   const prep = await prepareUpload(kind, ownerId, file.name);
   if (prep.error || !prep.path || !prep.token) throw new Error(prep.error ?? "업로드 준비 실패");
-  const bucket = kind === "report" ? "inspection-reports" : "report-templates";
+  const bucket = ({ report: "inspection-reports", template: "report-templates", issue: "issue-files" } as const)[kind];
   const { error } = await createClient().storage.from(bucket).uploadToSignedUrl(prep.path, prep.token, file, {
     contentType: file.type || "application/octet-stream",
   });
@@ -164,6 +165,38 @@ export function TemplateUpload({ customers }: { customers: { id: string; name: s
         </button>
         <Message msg={msg} />
       </div>
+    </form>
+  );
+}
+
+export function IssueFileUpload({ issueId }: { issueId: string }) {
+  const { pending, msg, run } = useUpload();
+  const form = useRef<HTMLFormElement>(null);
+  return (
+    <form
+      ref={form}
+      className="flex flex-wrap items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const files = new FormData(e.currentTarget).getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+        if (files.length === 0) return;
+        run(async () => {
+          for (const file of files) {
+            const path = await uploadFile("issue", issueId, file);
+            const r = await confirmIssueFile({ issueId, path, fileName: file.name, fileSize: file.size, contentType: file.type || null });
+            if (r?.error) return { error: `${file.name}: ${r.error}` };
+          }
+          form.current?.reset();
+          return { ok: `${files.length}개 첨부했습니다.` };
+        });
+      }}
+    >
+      <input name="files" type="file" multiple required aria-label="첨부 파일" className="input max-w-sm bg-white py-1" />
+      <button type="submit" disabled={pending} className="btn-secondary">
+        <Upload className="size-4" aria-hidden />
+        {pending ? "올리는 중…" : "첨부"}
+      </button>
+      <Message msg={msg} />
     </form>
   );
 }

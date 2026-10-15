@@ -39,7 +39,7 @@ export const CUSTOMER_TABS = [
   { key: "engineers", label: "담당 엔지니어" },
   { key: "contracts", label: "계약" },
   { key: "access", label: "접속정보" },
-  { key: "history", label: "점검이력·이슈" },
+  { key: "history", label: "점검·이슈" },
 ] as const;
 export type CustomerTab = (typeof CUSTOMER_TABS)[number]["key"];
 

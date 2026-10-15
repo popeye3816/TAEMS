@@ -62,6 +62,12 @@ async function InspectionView({ params }: Pick<Props, "params">) {
             .join(" · ")}
         </p>
         {insp.summary && <p className="mt-1 text-sm text-slate-700">{insp.summary}</p>}
+        <Link
+          href={`/issues/new?customer=${insp.customer.id}&inspection=${insp.id}`}
+          className="btn-secondary mt-3"
+        >
+          점검 중 발견한 문제를 이슈로 등록
+        </Link>
       </div>
 
       {(insp.customer.visit_procedure || insp.customer.inspection_method) && (

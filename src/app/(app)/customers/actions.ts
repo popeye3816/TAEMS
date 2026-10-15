@@ -1,5 +1,6 @@
 "use server";
 
+import { todayKst } from "@/lib/format";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser, requireRole } from "@/lib/auth";
@@ -176,7 +177,7 @@ export async function assignEngineer(_prev: FormState, fd: FormData): Promise<Fo
   const customer_id = text(fd, "customer_id");
   const staff_id = text(fd, "staff_id");
   const role = text(fd, "role") === "secondary" ? "secondary" : "primary";
-  const started_on = text(fd, "started_on") ?? new Date().toISOString().slice(0, 10);
+  const started_on = text(fd, "started_on") ?? todayKst();
   if (!customer_id || !staff_id) return { error: "엔지니어를 선택하세요." };
 
   const supabase = await createClient();
@@ -215,7 +216,7 @@ export async function endAssignment(fd: FormData) {
   const supabase = await createClient();
   await supabase
     .from("engineer_assignments")
-    .update({ ended_on: new Date().toISOString().slice(0, 10) })
+    .update({ ended_on: todayKst() })
     .eq("id", String(fd.get("id")));
   refresh();
 }

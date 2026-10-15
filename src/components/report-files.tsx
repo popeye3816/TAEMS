@@ -1,5 +1,6 @@
 import { Download, FileText, Image as ImageIcon } from "lucide-react";
 import { isImageFile } from "@/lib/inspection-fields";
+import { formatDateTime } from "@/lib/format";
 import { deleteReport, toggleSigned } from "@/app/(app)/schedule/actions";
 import { ConfirmSubmit } from "./action-form";
 
@@ -48,7 +49,7 @@ export function ReportFileList({
                 <span className="shrink-0 rounded bg-emerald-50 px-1.5 py-0.5 text-xs text-emerald-800">서명본</span>
               )}
               <span className="text-xs text-slate-500">
-                {[r.product, formatSize(r.file_size), r.uploader?.name, r.created_at.slice(0, 16).replace("T", " ")]
+                {[r.product, formatSize(r.file_size), r.uploader?.name, formatDateTime(r.created_at)]
                   .filter(Boolean)
                   .join(" · ")}
               </span>

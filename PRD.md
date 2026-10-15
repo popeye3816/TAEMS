@@ -310,6 +310,6 @@ Next.js(App Router) + TypeScript + Tailwind + shadcn/ui, Supabase(Postgres·Auth
 | Q4 | 회사 표준 점검결과서 | M3 | ✅ Jennifer·WAS 결과서 샘플 받음 (4.5.1) |
 | Q5 | 회사 이메일 도메인 | M1 | ✅ `unipoint.co.kr`, 최초 관리자 `chlee@unipoint.co.kr` |
 | Q6 | 영업·엔지니어 명단과 이메일 | M7 | ⏳ |
-| Q7 | 이슈 “처리중” 지연 기준일(심각도별) | M4 | ⏳ |
+| Q7 | 이슈 “처리중” 지연 기준일(심각도별) | M4 | 🔶 기본값 적용: 미배정 4시간, 긴급 1일·높음 3일·보통 7일·낮음 14일 (src/lib/issue-fields.ts) |
 | Q8 | 결과서 원본 양식 파일(.docx/.hwp)의 위치. 시스템에서 내려받을 양식으로 등록 | M3 | ⏳ |
 | Q9 | 영업이 대가 청구할 때 고객 서명본이 꼭 필요한가? | M3 | ⏳ |

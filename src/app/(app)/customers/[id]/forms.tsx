@@ -1,5 +1,6 @@
 "use client";
 
+import { todayKst } from "@/lib/format";
 import { useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
 import { ActionForm, Field } from "@/components/action-form";
@@ -201,7 +202,7 @@ function AssignForm({
   customerId: string;
   engineers: { id: string; name: string }[];
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKst();
   return (
     <ActionForm action={assignEngineer} submitLabel="배정">
       <input type="hidden" name="customer_id" value={customerId} />

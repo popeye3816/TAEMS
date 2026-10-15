@@ -1,5 +1,6 @@
 "use server";
 
+import { todayKst } from "@/lib/format";
 import { randomUUID } from "node:crypto";
 import { refresh } from "next/cache";
 import { requireRole } from "@/lib/auth";
@@ -176,7 +177,8 @@ export async function updateSchedule(fd: FormData) {
 }
 
 // ── 파일 업로드 (브라우저 → Supabase Storage 직접) ─────────────────
-const BUCKETS = { report: "inspection-reports", template: "report-templates" } as const;
+const BUCKETS = { report: "inspection-reports", template: "report-templates", issue: "issue-files" } as const;
+export type UploadKind = keyof typeof BUCKETS;
 
 function ext(fileName: string) {
   const m = fileName.match(/\.([A-Za-z0-9]{1,8})$/);
@@ -184,14 +186,14 @@ function ext(fileName: string) {
 }
 
 export async function prepareUpload(
-  kind: "report" | "template",
+  kind: UploadKind,
   ownerId: string,
   fileName: string,
 ): Promise<{ path?: string; token?: string; error?: string }> {
   const user = await requireStaff();
   if (kind === "template" && user.role !== "admin") return { error: "양식은 관리자만 올릴 수 있습니다." };
   // 저장 경로에는 한글 등 특수문자를 쓰지 않는다. 원래 파일명은 DB에 따로 보관한다.
-  const path = `${ownerId}/${new Date().toISOString().slice(0, 10)}-${randomUUID()}${ext(fileName)}`;
+  const path = `${ownerId}/${todayKst()}-${randomUUID()}${ext(fileName)}`;
   const { data, error } = await createAdminClient().storage.from(BUCKETS[kind]).createSignedUploadUrl(path);
   if (error || !data) return { error: `업로드 준비 실패: ${error?.message}` };
   return { path: data.path, token: data.token };

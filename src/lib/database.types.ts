@@ -663,6 +663,207 @@ export type Database = {
           },
         ]
       }
+      issue_activities: {
+        Row: {
+          author_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          issue_id: string
+          kind: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          issue_id: string
+          kind: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          issue_id?: string
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_activities_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issue_activities_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issue_files: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          issue_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          issue_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          issue_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_files_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issue_files_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          action: string | null
+          add_to_kb: boolean
+          assigned_at: string | null
+          assignee_id: string | null
+          cause: string | null
+          channel: string | null
+          created_at: string
+          customer_id: string
+          description: string | null
+          id: string
+          inspection_id: string | null
+          number: number
+          received_at: string
+          reporter_id: string | null
+          requester: string | null
+          resolved_at: string | null
+          severity: string
+          started_at: string | null
+          status: string
+          system_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action?: string | null
+          add_to_kb?: boolean
+          assigned_at?: string | null
+          assignee_id?: string | null
+          cause?: string | null
+          channel?: string | null
+          created_at?: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          inspection_id?: string | null
+          number?: never
+          received_at?: string
+          reporter_id?: string | null
+          requester?: string | null
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string | null
+          status?: string
+          system_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string | null
+          add_to_kb?: boolean
+          assigned_at?: string | null
+          assignee_id?: string | null
+          cause?: string | null
+          channel?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          inspection_id?: string | null
+          number?: never
+          received_at?: string
+          reporter_id?: string | null
+          requester?: string | null
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string | null
+          status?: string
+          system_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "customer_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

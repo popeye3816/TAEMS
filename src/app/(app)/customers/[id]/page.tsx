@@ -1,3 +1,4 @@
+import { todayKst } from "@/lib/format";
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -24,6 +25,9 @@ import { listCustomerInspections } from "@/lib/inspections";
 import { describePlan } from "@/lib/inspection-cycle";
 import { STATUS_LABEL, STATUS_STYLE, type InspectionStatus } from "@/lib/inspection-fields";
 import { deletePlan } from "../../schedule/actions";
+import { listCustomerIssues } from "@/lib/issues";
+import { formatDateTime } from "@/lib/format";
+import { IssueStatusBadge, SeverityBadge } from "@/components/issue-badges";
 
 type Props = PageProps<"/customers/[id]">;
 
@@ -375,7 +379,7 @@ async function Engineers({ c, isAdmin }: { c: CustomerDetail; isAdmin: boolean }
 // ── 계약 ───────────────────────────────────────────────────────────
 function Contracts({ c }: { c: CustomerDetail }) {
   if (c.contracts.length === 0) return <Empty>연결된 계약이 없습니다.</Empty>;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKst();
   return (
     <div className="card overflow-x-auto">
       <table className="w-full min-w-[760px] text-sm">
@@ -459,7 +463,7 @@ function Access({ c, canSeeSecrets }: { c: CustomerDetail; canSeeSecrets: boolea
 
 // ── 점검 주기 · 점검 이력 ─────────────────────────────────────────
 async function History({ c }: { c: CustomerDetail }) {
-  const { plans, inspections } = await listCustomerInspections(c.id);
+  const [{ plans, inspections }, issues] = await Promise.all([listCustomerInspections(c.id), listCustomerIssues(c.id)]);
   return (
     <div className="space-y-5">
       <section className="card p-5">
@@ -521,7 +525,36 @@ async function History({ c }: { c: CustomerDetail }) {
             ))}
           </ul>
         )}
-        <p className="mt-3 text-xs text-slate-400">이슈 이력은 M4에서 이 탭에 추가됩니다.</p>
+      </section>
+
+      <section className="card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900">이슈</h2>
+          <Link href={`/issues/new?customer=${c.id}`} className="btn-secondary">
+            이슈 등록
+          </Link>
+        </div>
+        {issues.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">등록된 이슈가 없습니다.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+            {issues.map((i) => (
+              <li key={i.id} className="py-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <IssueStatusBadge status={i.status} />
+                  <SeverityBadge severity={i.severity} />
+                  <Link href={`/issues/${i.id}`} className="font-medium text-blue-800 hover:underline">
+                    #{i.number} {i.title}
+                  </Link>
+                  <span className="text-xs text-slate-500">
+                    {formatDateTime(i.received_at).slice(0, 10)} · {i.assignee?.name ?? "미배정"}
+                  </span>
+                </div>
+                {i.cause && <p className="mt-1 text-xs text-slate-500">원인: {i.cause} / 조치: {i.action}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
