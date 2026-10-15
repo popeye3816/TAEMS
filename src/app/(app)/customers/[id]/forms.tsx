@@ -5,6 +5,8 @@ import { Plus } from "lucide-react";
 import { ActionForm, Field } from "@/components/action-form";
 import { EDITIONS, ENVIRONMENTS, PRODUCTS } from "@/lib/customer-fields";
 import { assignEngineer, saveContact, saveCredential, saveSystem } from "../actions";
+import { savePlan } from "../../schedule/actions";
+import { ALL_MONTHS, CYCLE_LABELS, CYCLES, DEFAULT_MONTHS, METHODS, type Cycle } from "@/lib/inspection-cycle";
 
 // 펼침/접힘 패널. 추가·수정 폼을 평소에는 숨겨 둔다.
 function Toggle({
@@ -298,4 +300,154 @@ export function AddAssignment(props: { customerId: string; engineers: { id: stri
 }
 export function AddCredential(props: { customerId: string; systems: { id: string; label: string }[] }) {
   return <Toggle label="접속정보 추가">{() => <CredentialForm {...props} />}</Toggle>;
+}
+
+// ── 점검 주기 ──────────────────────────────────────────────────────
+type Plan = {
+  id: string;
+  cycle: string;
+  months: number[];
+  method: string;
+  visit_months: number[];
+  preferred_timing: string | null;
+  products: string[];
+  is_active: boolean;
+};
+
+function PlanForm({
+  customerId,
+  products,
+  plan,
+  onDone,
+}: {
+  customerId: string;
+  products: string[];
+  plan?: Plan;
+  onDone?: () => void;
+}) {
+  const [cycle, setCycle] = useState<Cycle>((plan?.cycle as Cycle) ?? "monthly");
+  const [method, setMethod] = useState(plan?.method ?? "방문");
+  const [months, setMonths] = useState<number[]>(plan?.months.length ? plan.months : DEFAULT_MONTHS.monthly);
+  const showMonths = cycle !== "monthly" && cycle !== "percall";
+
+  return (
+    <ActionForm action={savePlan} onSuccess={onDone}>
+      <input type="hidden" name="customer_id" value={customerId} />
+      {plan && <input type="hidden" name="id" value={plan.id} />}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Field label="주기">
+          <select
+            name="cycle"
+            value={cycle}
+            onChange={(e) => {
+              const c = e.target.value as Cycle;
+              setCycle(c);
+              setMonths(DEFAULT_MONTHS[c]);
+            }}
+            className="input"
+          >
+            {CYCLES.map((c) => (
+              <option key={c} value={c}>
+                {CYCLE_LABELS[c]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="방식">
+          <select name="method" value={method} onChange={(e) => setMethod(e.target.value)} className="input">
+            {METHODS.map((m) => (
+              <option key={m} value={m}>
+                {m === "혼합" ? "혼합 (원격 + 일부 달 방문)" : m}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="선호 시기 (예: 월 하순, 20일 전)">
+          <input name="preferred_timing" defaultValue={plan?.preferred_timing ?? ""} className="input" />
+        </Field>
+      </div>
+      {showMonths && (
+        <MonthPicker name="months" label="점검하는 달" selected={months} onChange={setMonths} />
+      )}
+      {method === "혼합" && cycle !== "percall" && (
+        <MonthPicker
+          name="visit_months"
+          label="방문하는 달 (나머지 달은 원격)"
+          options={cycle === "monthly" ? ALL_MONTHS : months}
+          defaultSelected={plan?.visit_months ?? [3, 6, 9, 12]}
+        />
+      )}
+      {products.length > 1 && (
+        <fieldset className="space-y-1 text-sm">
+          <legend className="text-slate-600">점검 제품 (선택 안 하면 고객사 제품 전체)</legend>
+          <div className="flex flex-wrap gap-x-4">
+            {products.map((p) => (
+              <label key={p} className="flex items-center gap-1.5">
+                <input type="checkbox" name="products" value={p} defaultChecked={plan?.products.includes(p)} /> {p}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      {plan && (
+        <label className="flex items-center gap-1.5 text-sm">
+          <input type="checkbox" name="is_active" value="off" defaultChecked={!plan.is_active} /> 사용 중지 (일정을 만들지 않음)
+        </label>
+      )}
+    </ActionForm>
+  );
+}
+
+function MonthPicker({
+  name,
+  label,
+  selected,
+  onChange,
+  options = ALL_MONTHS,
+  defaultSelected,
+}: {
+  name: string;
+  label: string;
+  selected?: number[];
+  onChange?: (m: number[]) => void;
+  options?: number[];
+  defaultSelected?: number[];
+}) {
+  return (
+    <fieldset className="space-y-1 text-sm">
+      <legend className="text-slate-600">{label}</legend>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((m) => (
+          <label key={m} className="flex items-center gap-1 rounded border border-slate-200 px-2 py-1">
+            <input
+              type="checkbox"
+              name={name}
+              value={m}
+              {...(selected
+                ? {
+                    checked: selected.includes(m),
+                    onChange: (e) =>
+                      onChange?.(e.target.checked ? [...selected, m].sort((a, b) => a - b) : selected.filter((x) => x !== m)),
+                  }
+                : { defaultChecked: defaultSelected?.includes(m) })}
+            />
+            {m}월
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+export function AddPlan({ customerId, products }: { customerId: string; products: string[] }) {
+  return (
+    <Toggle label="점검 주기 추가">{(close) => <PlanForm customerId={customerId} products={products} onDone={close} />}</Toggle>
+  );
+}
+export function EditPlan({ customerId, products, plan }: { customerId: string; products: string[]; plan: Plan }) {
+  return (
+    <Toggle label="수정" variant="edit">
+      {(close) => <PlanForm customerId={customerId} products={products} plan={plan} onDone={close} />}
+    </Toggle>
+  );
 }

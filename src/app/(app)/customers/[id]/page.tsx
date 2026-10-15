@@ -19,7 +19,11 @@ import { ContentSkeleton } from "@/components/page-header";
 import { ConfirmSubmit } from "@/components/action-form";
 import { RevealSecret } from "@/components/reveal-secret";
 import { deleteContact, deleteCredential, deleteSystem, endAssignment, revealSecret } from "../actions";
-import { AddAssignment, AddContact, AddCredential, AddSystem, EditContact, EditSystem } from "./forms";
+import { AddAssignment, AddContact, AddCredential, AddPlan, AddSystem, EditContact, EditPlan, EditSystem } from "./forms";
+import { listCustomerInspections } from "@/lib/inspections";
+import { describePlan } from "@/lib/inspection-cycle";
+import { STATUS_LABEL, STATUS_STYLE, type InspectionStatus } from "@/lib/inspection-fields";
+import { deletePlan } from "../../schedule/actions";
 
 type Props = PageProps<"/customers/[id]">;
 
@@ -96,9 +100,7 @@ async function CustomerView({ params, searchParams }: Pick<Props, "params" | "se
       {tab === "engineers" && <Engineers c={c} isAdmin={isAdmin} />}
       {tab === "contracts" && <Contracts c={c} />}
       {tab === "access" && <Access c={c} canSeeSecrets={canSeeSecrets} />}
-      {tab === "history" && (
-        <Empty>점검이력은 M3(월별 일정·점검결과서), 이슈는 M4에서 이 탭에 표시됩니다.</Empty>
-      )}
+      {tab === "history" && <History c={c} />}
     </div>
   );
 }
@@ -451,6 +453,76 @@ function Access({ c, canSeeSecrets }: { c: CustomerDetail; canSeeSecrets: boolea
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+// ── 점검 주기 · 점검 이력 ─────────────────────────────────────────
+async function History({ c }: { c: CustomerDetail }) {
+  const { plans, inspections } = await listCustomerInspections(c.id);
+  return (
+    <div className="space-y-5">
+      <section className="card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900">점검 주기</h2>
+          <AddPlan customerId={c.id} products={c.products} />
+        </div>
+        {plans.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">점검 주기가 없습니다. 주기를 넣으면 월별 일정에 자동으로 만들어집니다.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+            {plans.map((p) => (
+              <li key={p.id} className={clsx("space-y-2 py-3", !p.is_active && "text-slate-400")}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span className="font-medium">{describePlan(p)}</span>
+                    {p.products.length > 0 && <span className="ml-2 text-xs text-slate-500">{p.products.join(", ")}</span>}
+                    {p.preferred_timing && <span className="ml-2 text-xs text-slate-500">· {p.preferred_timing}</span>}
+                    {!p.is_active && <span className="ml-2 text-xs">(사용 중지)</span>}
+                    {p.needs_review && (
+                      <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-800">
+                        자동 생성 · 확인 필요
+                      </span>
+                    )}
+                    {p.source_note && <p className="text-xs text-slate-500">근거: {p.source_note}</p>}
+                  </div>
+                  <div className="flex gap-3">
+                    <ConfirmSubmit action={deletePlan} id={p.id} message="이 점검 주기를 삭제할까요? 이미 만든 점검은 남습니다." />
+                  </div>
+                </div>
+                <EditPlan customerId={c.id} products={c.products} plan={p} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="card p-5">
+        <h2 className="text-sm font-semibold text-slate-900">점검 이력</h2>
+        {inspections.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">아직 점검 기록이 없습니다.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+            {inspections.map((i) => (
+              <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <Link href={`/schedule/${i.id}`} className="text-blue-800 hover:underline">
+                  {i.year}년 {i.month}월
+                </Link>
+                <span className="text-xs text-slate-500">
+                  {[i.scheduled_date, i.method, i.engineer?.name].filter(Boolean).join(" · ")}
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className={clsx("rounded px-1.5 py-0.5 text-xs font-medium", STATUS_STYLE[i.status as InspectionStatus])}>
+                    {STATUS_LABEL[i.status as InspectionStatus]}
+                  </span>
+                  <span className="text-xs text-slate-500">결과서 {i.reports.length}건</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-3 text-xs text-slate-400">이슈 이력은 M4에서 이 탭에 추가됩니다.</p>
+      </section>
     </div>
   );
 }

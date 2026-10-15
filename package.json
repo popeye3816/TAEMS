@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "import:extract": "python scripts/import/extract.py",
     "import:load": "node --env-file=.env.local scripts/import/load.mjs",
-    "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
+    "import:plans": "node --env-file=.env.local scripts/import/plans.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -35,5 +36,6 @@
     "supabase": "^2.121.0",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "type": "module"
 }

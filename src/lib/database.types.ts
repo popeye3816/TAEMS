@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      checklist_items: {
+        Row: {
+          id: string
+          is_active: boolean
+          method: string | null
+          name: string
+          section: string | null
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          method?: string | null
+          name: string
+          section?: string | null
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          method?: string | null
+          name?: string
+          section?: string | null
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          created_at: string
+          id: string
+          product: string
+          result_scale: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product: string
+          result_scale: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product?: string
+          result_scale?: string
+          title?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           amount: number | null
@@ -454,6 +516,266 @@ export type Database = {
           },
         ]
       }
+      inspection_plans: {
+        Row: {
+          created_at: string
+          customer_id: string
+          cycle: string
+          id: string
+          is_active: boolean
+          method: string
+          months: number[]
+          needs_review: boolean
+          preferred_timing: string | null
+          products: string[]
+          source_note: string | null
+          updated_at: string
+          visit_months: number[]
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          cycle: string
+          id?: string
+          is_active?: boolean
+          method?: string
+          months?: number[]
+          needs_review?: boolean
+          preferred_timing?: string | null
+          products?: string[]
+          source_note?: string | null
+          updated_at?: string
+          visit_months?: number[]
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          cycle?: string
+          id?: string
+          is_active?: boolean
+          method?: string
+          months?: number[]
+          needs_review?: boolean
+          preferred_timing?: string | null
+          products?: string[]
+          source_note?: string | null
+          updated_at?: string
+          visit_months?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_plans_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_reports: {
+        Row: {
+          created_at: string
+          customer_id: string
+          customer_signed: boolean
+          file_name: string
+          file_size: number | null
+          id: string
+          inspection_id: string
+          product: string | null
+          storage_path: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          customer_signed?: boolean
+          file_name: string
+          file_size?: number | null
+          id?: string
+          inspection_id: string
+          product?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          customer_signed?: boolean
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          inspection_id?: string
+          product?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_reports_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_reports_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_reports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_results: {
+        Row: {
+          detail: string | null
+          id: string
+          inspection_id: string
+          item_id: string
+          result: string | null
+          target_key: string
+          target_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          detail?: string | null
+          id?: string
+          inspection_id: string
+          item_id: string
+          result?: string | null
+          target_key: string
+          target_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          detail?: string | null
+          id?: string
+          inspection_id?: string
+          item_id?: string
+          result?: string | null
+          target_key?: string
+          target_label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_results_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          customer_id: string
+          engineer_id: string | null
+          findings: string | null
+          follow_up: string | null
+          id: string
+          method: string | null
+          month: number
+          plan_id: string | null
+          products: string[]
+          reported_at: string | null
+          scheduled_date: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+          updated_by: string | null
+          year: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          customer_id: string
+          engineer_id?: string | null
+          findings?: string | null
+          follow_up?: string | null
+          id?: string
+          method?: string | null
+          month: number
+          plan_id?: string | null
+          products?: string[]
+          reported_at?: string | null
+          scheduled_date?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          year: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          engineer_id?: string | null
+          findings?: string | null
+          follow_up?: string | null
+          id?: string
+          method?: string | null
+          month?: number
+          plan_id?: string | null
+          products?: string[]
+          reported_at?: string | null
+          scheduled_date?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_engineer_id_fkey"
+            columns: ["engineer_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -489,6 +811,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      report_templates: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          file_name: string
+          id: string
+          is_active: boolean
+          name: string
+          product: string | null
+          storage_path: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          file_name: string
+          id?: string
+          is_active?: boolean
+          name: string
+          product?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          file_name?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          product?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_templates_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       secret_access_logs: {
         Row: {
